@@ -284,6 +284,35 @@ identical prediction.
 
 ---
 
+## D11 — Privacy is enforced by a pre-commit hook, not by discipline
+
+**Date:** 2026-10-14 · **Status:** Decided
+
+`.githooks/pre-commit` runs before every commit and blocks it on any of four checks:
+sensitive paths (`data/`, `.env`, raw exports), secret values from `.env` appearing in staged
+source, logged flow/symptom **values** in staged content, and any JSON file not on a short
+config allowlist. Installed with `git config core.hooksPath .githooks`.
+
+**Why:** `.gitignore` is necessary but not sufficient. It is path-based, it silently does
+nothing when a pattern is wrong, and it cannot see content. Two near-misses on the day this
+repo was created proved the point: a `.gitignore` written with trailing comments (`data/  # ...`)
+matched nothing and staged both `cycles.json` and `.env`, and the decisions doc itself — which
+claims on its first page to contain no health data — held three cycles of flow values in D5.
+Neither would have been caught by a filename check or by reading `git status`.
+
+**Design note:** the hook matches values, not field names. A field name like `flow_by_day` is
+legitimate source code; an `option` field carrying an actual flow level is an observation. A
+guard that blocks your own source gets disabled, which is worse than no guard.
+
+(This entry was itself blocked on first commit for quoting a flow value as an example — the
+example was reworded rather than the rule loosened. Working as intended.)
+
+**Limits, accepted:** hooks are local — a fresh clone must run the `core.hooksPath` command
+again (noted in the README). `--no-verify` bypasses it. And it cannot un-publish anything: a
+commit that reaches a public remote must be treated as disclosed, regardless of later rewrites.
+
+---
+
 ## Open questions
 
 | # | Question | Why it matters | Needed by |
@@ -313,3 +342,4 @@ identical prediction.
 | 2026-10-14 | Push subscription re-created from the phone and persisted (the spike had been stateless, so nothing could send). |
 | 2026-10-14 | **D10:** `launchd` ingest agent removed after never once succeeding — macOS TCC blocks `python3` under `launchd`. Ingest is now run on request ("re-ingest"). Full Disk Access and moving the project were both considered and rejected. |
 | 2026-10-14 | **Privacy audit before first commit.** D5 and D6 redacted — flow values and symptom examples replaced with abstract descriptions; the reasoning is unchanged. `.gitignore` rewritten to name sensitive paths explicitly (the earlier `*.json` blanket rule would have excluded `vercel.json` and `manifest.json` and broken the deploy). Repo made public for portfolio purposes; PDFs and the old Apple Health folder left ignored pending review. |
+| 2026-10-14 | **D11:** pre-commit hook added and tested against three leak scenarios (force-added data file, flow values in an innocently-named `.md`, secret pasted into source) — all blocked. Repo initialized; first commit audited clean. |
