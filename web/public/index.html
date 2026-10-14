@@ -148,6 +148,8 @@
     <p class="label">Notifications</p>
     <p id="push-state" style="margin:0 0 12px;font-size:15px">Checking…</p>
     <button id="enable" disabled>Enable notifications</button>
+    <button class="quiet" id="test-push" hidden>Send a test notification</button>
+    <p class="note" id="test-result" hidden></p>
   </div>
 
   <details>
@@ -309,6 +311,7 @@ async function initPush() {
     if (existing && Notification.permission === "granted") {
       $("push-state").textContent = "On. You'll get at most one notification a day.";
       $("enable").textContent = "Re-register this device";
+      $("test-push").hidden = false;
       log("existing subscription found", "ok");
     } else {
       $("push-state").textContent = "Tap below, then allow notifications when iOS asks.";
@@ -348,6 +351,7 @@ async function enable(reg) {
     if (res.ok) {
       log("server accepted subscription — test push sent", "ok");
       $("push-state").textContent = "On. A test notification should arrive in a moment.";
+      $("test-push").hidden = false;
     } else {
       log("server error: " + (body.error || res.status), "bad");
       $("push-state").textContent = "Subscribed, but the server could not send. See diagnostics.";
@@ -358,6 +362,34 @@ async function enable(reg) {
     $("enable").disabled = false;
   }
 }
+
+// Sends today's real notification on demand -- same rules engine the cron
+// uses, so this tests the actual thing rather than a stand-in.
+$("test-push").onclick = async () => {
+  const btn = $("test-push"), out = $("test-result");
+  btn.disabled = true;
+  out.hidden = false;
+  out.textContent = "Sending…";
+
+  try {
+    const res = await fetch("/api/test-push", { method: "POST" });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      out.textContent = `Sent${body.rule ? " (" + body.rule + ")" : ""} — check your lock screen.`;
+      log("test push sent: " + (body.rule || "fallback"), "ok");
+    } else {
+      out.textContent = body.error || `Failed (${res.status})`;
+      log("test push failed: " + (body.error || res.status), "bad");
+      if (body.subscriptionExpired) {
+        $("push-state").textContent = "This device's subscription expired. Tap Re-register.";
+      }
+    }
+  } catch (err) {
+    out.textContent = "Failed: " + err.message;
+    log("test push error: " + err.message, "bad");
+  }
+  btn.disabled = false;
+};
 
 start();
 </script>
