@@ -313,6 +313,34 @@ commit that reaches a public remote must be treated as disclosed, regardless of 
 
 ---
 
+## D12 — Companion view sits behind a password, not a secret URL
+
+**Date:** 2026-10-14 · **Status:** Decided
+
+The companion view and its data endpoint require a password. The password is stored only as a
+scrypt hash; signing in issues an HMAC-signed, HttpOnly session cookie valid 90 days, and
+repeated failures lock the endpoint for 15 minutes.
+
+**Why:** the read endpoint returns predicted period dates over the internet, which D8 says must
+be authenticated. The cheaper option — a secret token in the URL — was rejected: a URL leaks
+permanently the first time it is screenshotted, shared or synced, and it cannot be rotated
+without breaking the home-screen shortcut.
+
+**Design notes:**
+- The view reuses the cron's `buildContext`, so the app and the notifications cannot disagree
+  about what day of the cycle it is.
+- `/api/test-push` sends today's *real* rule output rather than a canned message, and leaves the
+  sent-log untouched. A test that exercises a different code path proves nothing.
+- Staleness is shown, not implied: a prediction older than 21 days raises a banner. This is the
+  mitigation D10 promised.
+
+**Operational lesson, recorded because it cost time:** setup tooling should write secrets to
+`.env` directly rather than printing them for copy-paste. The first version printed them, which
+put a live session secret in terminal scrollback and then into a chat transcript; both had to be
+rotated. Credentials should pass between files, never through a human or a screen.
+
+---
+
 ## Open questions
 
 | # | Question | Why it matters | Needed by |
@@ -343,3 +371,6 @@ commit that reaches a public remote must be treated as disclosed, regardless of 
 | 2026-10-14 | **D10:** `launchd` ingest agent removed after never once succeeding — macOS TCC blocks `python3` under `launchd`. Ingest is now run on request ("re-ingest"). Full Disk Access and moving the project were both considered and rejected. |
 | 2026-10-14 | **Privacy audit before first commit.** D5 and D6 redacted — flow values and symptom examples replaced with abstract descriptions; the reasoning is unchanged. `.gitignore` rewritten to name sensitive paths explicitly (the earlier `*.json` blanket rule would have excluded `vercel.json` and `manifest.json` and broken the deploy). Repo made public for portfolio purposes; PDFs and the old Apple Health folder left ignored pending review. |
 | 2026-10-14 | **D11:** pre-commit hook added and tested against three leak scenarios (force-added data file, flow values in an innocently-named `.md`, secret pasted into source) — all blocked. Repo initialized; first commit audited clean. |
+| 2026-10-14 | **D12:** password gate (scrypt + signed session cookie + lockout) and the companion view shipped — countdown, window, stated confidence, cycle day, phase, today's note, staleness banner, collapsed diagnostics. |
+| 2026-10-14 | `/api/test-push` added: sends today's real rule output on demand. Verified end to end — notification delivered to the phone. |
+| 2026-10-14 | Session secret and password hash rotated after leaking into terminal scrollback and a chat transcript. Vercel env vars replaced; setup tool rewritten to write `.env` directly. |
