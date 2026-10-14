@@ -1,0 +1,22 @@
+# --- Personal health data: never version-controlled (see D8 in the decisions doc) ---
+# parsed cycles.json + ingest log
+data/
+# raw Clue exports, if one is ever copied into the project
+ClueDataDownload*/
+*.ics
+
+# --- Secrets: upload secret, VAPID keys ---
+.env
+.env.*
+!.env.example
+
+# --- Pending privacy review before publishing (see audit 2026-10-14) ---
+*.pdf
+old - apple health/
+
+# --- Junk / build ---
+.DS_Store
+node_modules/
+venv/
+__pycache__/
+*.pyc

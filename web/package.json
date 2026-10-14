@@ -1,0 +1,10 @@
+{
+  "name": "petal-ping",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@vercel/blob": "^2.8.1",
+    "web-push": "^3.6.7"
+  }
+}

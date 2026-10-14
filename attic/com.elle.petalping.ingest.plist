@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.elle.petalping.ingest</string>
+
+  <!-- Runs ingest.py: reads the newest Clue export from iCloud, recomputes the
+       prediction, and uploads it. No Terminal, no app to open. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/elle/Documents/SLOAN/School/AI Seminar/cycle_tracking/ingest.py</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/elle/Documents/SLOAN/School/AI Seminar/cycle_tracking</string>
+
+  <!-- Run once when you log in... -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- ...and every 6 hours while the Mac is awake. If the Mac is asleep when a
+       run is due, launchd runs it shortly after it wakes -- which is what makes
+       "just open the laptop" actually work. -->
+  <key>StartInterval</key>
+  <integer>21600</integer>
+
+  <key>StandardOutPath</key>
+  <string>/Users/elle/Documents/SLOAN/School/AI Seminar/cycle_tracking/data/ingest.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/elle/Documents/SLOAN/School/AI Seminar/cycle_tracking/data/ingest.log</string>
+
+  <!-- Low priority: this is background housekeeping, not urgent work. -->
+  <key>Nice</key>
+  <integer>5</integer>
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>
