@@ -1,0 +1,73 @@
+#!/bin/bash
+# Petal Ping pre-commit guard (see D8, D11 in the decisions doc).
+#
+# Blocks a commit that would publish personal health data or secrets.
+# Checks staged CONTENT, not just filenames -- a file can have an innocent
+# name and still hold cycle data.
+#
+# Installed via:  git config core.hooksPath .githooks
+# Bypass (don't):  git commit --no-verify
+
+red() { printf '\033[31m%s\033[0m\n' "$1"; }
+fail=0
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+# --- 1. Paths that must never be committed -------------------------------
+while IFS= read -r f; do
+  case "$f" in
+    data/*|*/data/*|.env|.env.*|*ClueDataDownload*|*measurements.json|"old - apple health"/*)
+      red "BLOCKED path: $f"; fail=1 ;;
+  esac
+done <<< "$staged"
+
+# --- 2. Secret VALUES from .env appearing anywhere in staged content -----
+# Catches a key pasted into source even if .env itself is ignored.
+if [ -f .env ]; then
+  while IFS='=' read -r key val; do
+    case "$key" in ''|\#*) continue ;; esac
+    [ "$key" = "VAPID_PUBLIC_KEY" ] && continue   # public by design: ships to the browser
+    val=$(printf '%s' "$val" | tr -d '"'"'"' ' | tr -d "'")
+    [ ${#val} -lt 12 ] && continue
+    while IFS= read -r f; do
+      case "$f" in .githooks/*) continue ;; esac
+      git show ":$f" 2>/dev/null | grep -qF -- "$val" && { red "BLOCKED secret: value of $key found in $f"; fail=1; }
+    done <<< "$staged"
+  done < .env
+fi
+
+# --- 3. Health-data fingerprints in staged content -----------------------
+# Looks for VALUES, not field names: `flow_by_day` is legitimate source code,
+# but `"option": "heavy"` is a logged observation. Field names alone are not
+# flagged, or this would block ingest.py and rules.js on every commit.
+patterns='"option"[[:space:]]*:[[:space:]]*"(light|medium|heavy|spotting)"|"minutes"[[:space:]]*:[[:space:]]*[0-9]{2,}|(light|medium|heavy)[[:space:]]+(light|medium|heavy)[[:space:]]+(light|medium|heavy)'
+while IFS= read -r f; do
+  case "$f" in .githooks/*) continue ;; esac   # the hook documents the patterns it blocks
+  git show ":$f" 2>/dev/null | grep -qE "$patterns" && {
+    red "BLOCKED content: $f contains logged flow/symptom VALUES"
+    git show ":$f" | grep -nE "$patterns" | head -3 | sed 's/^/        /'
+    fail=1
+  }
+done <<< "$staged"
+
+# --- 4. Any JSON that is not a known config file -------------------------
+# All derived health data is JSON. Config JSON is a short, known list.
+while IFS= read -r f; do
+  case "$f" in
+    *.json)
+      case "$(basename "$f")" in
+        package.json|package-lock.json|manifest.json|vercel.json|tsconfig.json|.eslintrc.json) ;;
+        *) red "BLOCKED: unrecognized JSON file '$f' -- data lives in JSON, so this needs a look."
+           red "         If it is config, add its name to the allowlist in .githooks/pre-commit."
+           fail=1 ;;
+      esac ;;
+  esac
+done <<< "$staged"
+
+if [ $fail -ne 0 ]; then
+  echo
+  red "Commit aborted. Unstage the offending file (git restore --staged <file>),"
+  red "or redact the content. Add it to .gitignore if it should never be tracked."
+  exit 1
+fi
+exit 0
