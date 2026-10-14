@@ -16,39 +16,64 @@
     --ink: #2A1F24;
     --muted: #7A6A70;
     --bg: #FFFBFC;
+    --card: #FFFFFF;
     --line: #EBD9DF;
     --ok: #2E7D5B;
     --bad: #B23A48;
+    --warn: #8A5A1B;
+    --warn-bg: #FBF0DD;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --rose: #E79AB4; --rose-soft: #3A2630; --ink: #F4EAEE;
-      --muted: #B5A3AB; --bg: #1A1115; --line: #3A2B31;
-      --ok: #6FD6A6; --bad: #F08A96;
+      --muted: #B5A3AB; --bg: #1A1115; --card: #241920; --line: #3A2B31;
+      --ok: #6FD6A6; --bad: #F08A96; --warn: #F0C27C; --warn-bg: #3A2E1C;
     }
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; padding: 32px 16px calc(32px + env(safe-area-inset-bottom));
+    margin: 0; padding: 28px 16px calc(32px + env(safe-area-inset-bottom));
     background: var(--bg); color: var(--ink);
     font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     max-width: 560px; margin-inline: auto;
   }
-  header { text-align: center; margin-bottom: 28px; }
+  header { text-align: center; margin-bottom: 24px; }
   .mark {
-    width: 56px; height: 56px; border-radius: 50%;
-    background: var(--rose); margin: 0 auto 12px;
-    display: grid; place-items: center; color: #fff; font-size: 26px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--rose); margin: 0 auto 10px;
+    display: grid; place-items: center; color: #fff; font-size: 24px;
   }
-  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h1 { font-size: 21px; margin: 0 0 2px; letter-spacing: -0.01em; }
   .sub { color: var(--muted); font-size: 14px; margin: 0; }
 
   .card {
-    background: var(--rose-soft); border: 1px solid var(--line);
-    border-radius: 14px; padding: 18px; margin-bottom: 16px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px; margin-bottom: 14px;
   }
-  .card h2 { font-size: 15px; margin: 0 0 8px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--muted); }
-  .card p { margin: 0; font-size: 15px; }
+  .card.accent { background: var(--rose-soft); }
+  .label {
+    font-size: 12px; margin: 0 0 6px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* The one number the app exists to show. */
+  .countdown { font-size: 40px; font-weight: 700; line-height: 1.1; margin: 0 0 4px; letter-spacing: -0.02em; }
+  .window { font-size: 15px; margin: 0; color: var(--ink); }
+  .note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .fact .v { font-size: 20px; font-weight: 650; }
+  .fact .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .pill {
+    display: inline-block; font-size: 12px; padding: 3px 9px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted); background: var(--bg);
+  }
+  .banner {
+    background: var(--warn-bg); border: 1px solid var(--warn); color: var(--warn);
+    border-radius: 12px; padding: 12px 14px; font-size: 14px; margin-bottom: 14px;
+  }
 
   button {
     width: 100%; padding: 15px 20px; font-size: 17px; font-weight: 600;
@@ -56,14 +81,23 @@
     cursor: pointer; -webkit-tap-highlight-color: transparent;
   }
   button:disabled { opacity: .45; }
+  button.quiet { background: transparent; color: var(--muted); font-size: 14px; font-weight: 500; padding: 10px; }
 
+  input[type=password] {
+    width: 100%; padding: 14px; font-size: 17px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink); margin-bottom: 10px;
+  }
+  .err { color: var(--bad); font-size: 14px; margin: 10px 0 0; }
+
+  details { margin-top: 18px; }
+  summary { color: var(--muted); font-size: 13px; cursor: pointer; }
   #log {
-    margin-top: 20px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
-    background: transparent; border: 1px solid var(--line); border-radius: 12px;
-    padding: 14px; white-space: pre-wrap; word-break: break-word; color: var(--muted);
-    min-height: 60px;
+    margin-top: 10px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+    border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px; white-space: pre-wrap; word-break: break-word; color: var(--muted);
   }
   .ok { color: var(--ok); } .bad { color: var(--bad); }
+  [hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -71,35 +105,74 @@
 <header>
   <div class="mark">🌸</div>
   <h1>Petal Ping</h1>
-  <p class="sub">Push notification test</p>
+  <p class="sub" id="subtitle">—</p>
 </header>
 
-<div class="card" id="step">
-  <h2>Step 1</h2>
-  <p id="step-text">Checking how this page was opened…</p>
-</div>
+<!-- Gate. Shown until a valid session cookie exists. -->
+<section id="gate" hidden>
+  <div class="card">
+    <p class="label">Password</p>
+    <form id="login-form">
+      <input type="password" id="password" autocomplete="current-password"
+             placeholder="Password" aria-label="Password">
+      <button type="submit" id="login-btn">Sign in</button>
+    </form>
+    <p class="err" id="login-err" hidden></p>
+    <p class="note">This page shows personal health data, so it stays behind a password.</p>
+  </div>
+</section>
 
-<button id="enable" disabled>Enable notifications</button>
+<!-- The companion view proper. -->
+<main id="app" hidden>
+  <div class="banner" id="stale" hidden></div>
 
-<div id="log">Starting…</div>
+  <div class="card accent">
+    <p class="label">Next period</p>
+    <p class="countdown" id="countdown">—</p>
+    <p class="window" id="window">—</p>
+    <p class="note" id="confidence"></p>
+  </div>
+
+  <div class="facts">
+    <div class="fact"><div class="v" id="cycle-day">—</div><div class="k">Cycle day</div></div>
+    <div class="fact"><div class="v" id="phase">—</div><div class="k">Phase</div></div>
+  </div>
+
+  <div class="card" id="today-card" hidden style="margin-top:14px">
+    <p class="label">Today's note</p>
+    <p id="today-title" style="font-weight:600;margin:0 0 4px"></p>
+    <p id="today-body" style="margin:0;font-size:15px"></p>
+  </div>
+
+  <div class="card">
+    <p class="label">Notifications</p>
+    <p id="push-state" style="margin:0 0 12px;font-size:15px">Checking…</p>
+    <button id="enable" disabled>Enable notifications</button>
+  </div>
+
+  <details>
+    <summary>Diagnostics</summary>
+    <div id="log"></div>
+  </details>
+
+  <button class="quiet" id="signout">Sign out</button>
+</main>
 
 <script>
 const VAPID_PUBLIC_KEY = "BATreQOeV8CzLSYK5-4d4dHTbAfEXDi_Xz8agVumOHEjBEnLTz8u327exOYalRq16j4Gpm8wcAEy4g6CRBVtHt0";
 
-const logEl  = document.getElementById("log");
-const btn    = document.getElementById("enable");
-const stepEl = document.getElementById("step-text");
+const $ = (id) => document.getElementById(id);
 
 function log(msg, cls) {
   const line = document.createElement("div");
   if (cls) line.className = cls;
   line.textContent = msg;
-  logEl.appendChild(line);
+  $("log").appendChild(line);
 }
 
 // iOS only allows Web Push once the app has been added to the Home Screen.
-// Running in a Safari tab will fail at subscribe() with an unhelpful error,
-// so check up front and say so plainly instead.
+// Running in a Safari tab fails at subscribe() with an unhelpful error, so
+// check up front and say so plainly instead.
 const isStandalone =
   window.navigator.standalone === true ||
   window.matchMedia("(display-mode: standalone)").matches;
@@ -111,51 +184,151 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-async function init() {
-  logEl.textContent = "";
-  log("standalone (added to Home Screen): " + isStandalone);
-  log("serviceWorker supported: " + ("serviceWorker" in navigator));
-  log("PushManager supported: " + ("PushManager" in window));
-  log("Notification supported: " + ("Notification" in window));
+const fmt = (iso) =>
+  new Date(iso + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
 
-  if (!isStandalone) {
-    stepEl.innerHTML =
-      "Open this page in <b>Safari</b>, tap the <b>Share</b> button, " +
-      "then <b>Add to Home Screen</b>. Open it from your Home Screen and come back here.<br><br>" +
-      "iOS only allows notifications from a Home Screen app — not from a browser tab.";
-    log("Not running from Home Screen — cannot enable push yet.", "bad");
+// --- gate ------------------------------------------------------------------
+
+async function start() {
+  const res = await fetch("/api/prediction");
+  if (res.status === 401) {
+    $("gate").hidden = false;
+    $("subtitle").textContent = "Sign in to see your predictions";
+    $("password").focus();
+    return;
+  }
+  render(await res.json());
+}
+
+$("login-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = $("login-btn");
+  const err = $("login-err");
+  btn.disabled = true;
+  err.hidden = true;
+
+  const res = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: $("password").value }),
+  });
+  const body = await res.json().catch(() => ({}));
+
+  if (res.ok) {
+    $("password").value = "";
+    $("gate").hidden = true;
+    start();
     return;
   }
 
+  err.textContent = body.attemptsRemaining !== undefined
+    ? `${body.error} — ${body.attemptsRemaining} attempts left`
+    : (body.error || "Sign in failed");
+  err.hidden = false;
+  btn.disabled = false;
+};
+
+$("signout").onclick = async () => {
+  await fetch("/api/login", { method: "DELETE" });
+  location.reload();
+};
+
+// --- the view --------------------------------------------------------------
+
+function render(data) {
+  $("app").hidden = false;
+  $("subtitle").textContent = "Your cycle at a glance";
+
+  const p = data.prediction;
+  if (!p) {
+    $("countdown").textContent = "No data";
+    $("window").textContent = "Run an ingest to upload a prediction.";
+    return;
+  }
+
+  const days = data.days_until_window;
+  if (days > 0)        $("countdown").textContent = `in ${days} day${days === 1 ? "" : "s"}`;
+  else if (days === 0) $("countdown").textContent = "expected today";
+  else                 $("countdown").textContent = `${Math.abs(days)} day${days === -1 ? "" : "s"} late`;
+
+  $("window").textContent = `${fmt(p.window_start)} – ${fmt(p.window_end)}`;
+
+  // Confidence is stated, never implied. With two cycles observed the honest
+  // answer is "low", and the UI should say so rather than show a crisp date.
+  $("confidence").innerHTML =
+    `<span class="pill">${p.confidence} confidence</span> ` +
+    `from ${p.complete_cycles} complete cycle${p.complete_cycles === 1 ? "" : "s"}` +
+    (p.avg_cycle_length ? ` · avg ${p.avg_cycle_length} days` : "");
+
+  $("cycle-day").textContent = data.cycle_day ?? "—";
+  $("phase").textContent = data.phase ? data.phase[0].toUpperCase() + data.phase.slice(1) : "—";
+
+  if (data.today) {
+    $("today-card").hidden = false;
+    $("today-title").textContent = data.today.title;
+    $("today-body").textContent = data.today.body;
+  }
+
+  // Ingest is manual (D10), so staleness has to be visible rather than silent.
+  if (data.age_days !== null && data.age_days > 21) {
+    $("stale").hidden = false;
+    $("stale").textContent =
+      `This prediction is ${data.age_days} days old. Export from Clue and re-ingest ` +
+      `to keep notifications accurate.`;
+  }
+
+  initPush();
+}
+
+// --- push ------------------------------------------------------------------
+
+async function initPush() {
+  log("standalone (added to Home Screen): " + isStandalone);
+  log("serviceWorker supported: " + ("serviceWorker" in navigator));
+  log("PushManager supported: " + ("PushManager" in window));
+
+  if (!isStandalone) {
+    $("push-state").innerHTML =
+      "Open in <b>Safari</b> → Share → <b>Add to Home Screen</b>, then open it from there. " +
+      "iOS only allows notifications from a Home Screen app.";
+    log("Not running from Home Screen — cannot enable push yet.", "bad");
+    return;
+  }
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    stepEl.textContent = "This device does not support Web Push. You need iOS 16.4 or later.";
+    $("push-state").textContent = "This device does not support Web Push (needs iOS 16.4+).";
     log("Missing required browser APIs.", "bad");
     return;
   }
 
   try {
     const reg = await navigator.serviceWorker.register("/sw.js");
-    log("service worker registered", "ok");
     await navigator.serviceWorker.ready;
     log("service worker ready", "ok");
 
-    stepEl.textContent = "Tap the button below, then allow notifications when iOS asks.";
-    btn.disabled = false;
-    btn.onclick = () => enable(reg);
+    const existing = await reg.pushManager.getSubscription();
+    if (existing && Notification.permission === "granted") {
+      $("push-state").textContent = "On. You'll get at most one notification a day.";
+      $("enable").textContent = "Re-register this device";
+      log("existing subscription found", "ok");
+    } else {
+      $("push-state").textContent = "Tap below, then allow notifications when iOS asks.";
+    }
+    $("enable").disabled = false;
+    $("enable").onclick = () => enable(reg);
   } catch (err) {
     log("service worker failed: " + err.message, "bad");
-    stepEl.textContent = "Could not start the service worker. See the log below.";
+    $("push-state").textContent = "Could not start the service worker. See diagnostics.";
   }
 }
 
 async function enable(reg) {
-  btn.disabled = true;
+  $("enable").disabled = true;
   try {
     // Must be called from a user gesture on iOS.
     const permission = await Notification.requestPermission();
     log("permission: " + permission, permission === "granted" ? "ok" : "bad");
     if (permission !== "granted") {
-      stepEl.textContent = "Notifications were blocked. Enable them in Settings → Petal Ping.";
+      $("push-state").textContent = "Notifications are blocked. Enable them in Settings → Petal Ping.";
       return;
     }
 
@@ -174,19 +347,19 @@ async function enable(reg) {
 
     if (res.ok) {
       log("server accepted subscription — test push sent", "ok");
-      stepEl.textContent = "Done. A test notification should arrive in a moment.";
+      $("push-state").textContent = "On. A test notification should arrive in a moment.";
     } else {
       log("server error: " + (body.error || res.status), "bad");
-      stepEl.textContent = "Subscribed, but the server could not send. See the log.";
+      $("push-state").textContent = "Subscribed, but the server could not send. See diagnostics.";
     }
   } catch (err) {
     log("failed: " + err.message, "bad");
-    stepEl.textContent = "Something went wrong. See the log below.";
-    btn.disabled = false;
+    $("push-state").textContent = "Something went wrong. See diagnostics.";
+    $("enable").disabled = false;
   }
 }
 
-init();
+start();
 </script>
 </body>
 </html>
