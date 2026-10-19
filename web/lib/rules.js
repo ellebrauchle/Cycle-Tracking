@@ -129,6 +129,17 @@ function safetyNetTip() {
   return TIPS.find((t) => t.phase === "safety-net") || null;
 }
 
+// General-purpose lines for preview mode when there is no prediction to reason
+// from. Deliberately not health claims -- with no data, the honest options are
+// encouragement or silence.
+export const GENERAL_TIPS = [
+  "No cycle data loaded yet, so nothing to predict — but the pipeline is alive and this is it working.",
+  "Tracking is the boring part that makes everything else possible. Log what you notice today.",
+  "Patterns need a few cycles before they mean anything. You're building the baseline right now.",
+  "Nothing to report today. That's a perfectly good kind of day.",
+  "Your body is running a complicated process in the background. Worth a little credit.",
+];
+
 // --- Rules ------------------------------------------------------------------
 
 export const RULES = [

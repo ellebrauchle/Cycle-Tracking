@@ -6,7 +6,16 @@
 
 import webpush from "web-push";
 import { readJSON, writeJSON, PATHS } from "../lib/store.js";
-import { selectNotification } from "../lib/rules.js";
+import { selectNotification, GENERAL_TIPS } from "../lib/rules.js";
+
+// Preview mode: send something EVERY day until this date, so two weeks of real
+// notifications can be judged instead of guessed at. Set DAILY_PREVIEW_UNTIL to
+// a YYYY-MM-DD; it expires on its own, which is the point -- a debug switch with
+// no off date is a debug switch left on forever.
+function inPreview(todayISO) {
+  const until = process.env.DAILY_PREVIEW_UNTIL;
+  return Boolean(until && todayISO <= until);
+}
 
 export default async function handler(req, res) {
   // Vercel signs its own cron requests. Allow a manual run with the upload
@@ -37,18 +46,39 @@ export default async function handler(req, res) {
   if (!stored?.subscription) {
     return res.status(200).json({ sent: false, reason: "no push subscription saved yet" });
   }
-  if (!prediction) {
+  const now = new Date();
+  const todayISO = now.toISOString().slice(0, 10);
+  const preview = inPreview(todayISO);
+  const dryRun = req.query?.dry === "1";
+
+  if (!prediction && !preview) {
     return res.status(200).json({ sent: false, reason: "no prediction uploaded yet" });
   }
 
-  const dryRun = req.query?.dry === "1";
-  const choice = selectNotification(prediction, sentLog, new Date());
+  // During preview, cooldowns are ignored (an empty sent-log) so a rule fires
+  // every day. The real sent-log is still written, so normal spacing resumes
+  // correctly the moment preview ends.
+  let choice = prediction ? selectNotification(prediction, preview ? {} : sentLog, now) : null;
+
+  // No prediction at all and preview is on: say something general rather than
+  // nothing, so the daily cadence can still be judged.
+  if (!choice && preview) {
+    const pool = GENERAL_TIPS;
+    const seed = Math.floor(Date.parse(todayISO) / 86400000);
+    choice = {
+      rule: { id: "preview-general" },
+      title: "Petal Ping",
+      body: pool[seed % pool.length],
+      ctx: { cycleDay: null, phase: null, daysUntilWindow: null },
+    };
+  }
 
   if (!choice) {
     return res.status(200).json({ sent: false, reason: "no rule matched today" });
   }
 
   const summary = {
+    preview,
     rule: choice.rule.id,
     title: choice.title,
     body: choice.body,
