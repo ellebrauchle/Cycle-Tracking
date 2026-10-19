@@ -10,8 +10,8 @@ ClueDataDownload*/
 .env.*
 !.env.example
 
-# --- Pending privacy review before publishing (see audit 2026-10-14) ---
-*.pdf
+# --- Reviewed 2026-10-19: PRDs confirmed clean by Elle, now published ---
+# (the old Apple Health experiment stays out -- superseded, not reviewed)
 old - apple health/
 
 # --- Junk / build ---
