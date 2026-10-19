@@ -283,15 +283,21 @@ function render(data) {
     $("today-card").hidden = false;
     $("today-title").textContent = data.today.title;
     $("today-body").textContent = data.today.body;
-    setupFeedback(data.today.rule);
-
-    // Arrived by tapping a notification: point at the note it was about.
-    const from = new URLSearchParams(location.search).get("note");
+    // Arrived by tapping a notification: show and rate THAT notification, not
+    // whatever the rules would pick right now. A tone sample carries its own
+    // text in the link; a normal rule notification just carries its tag.
+    const params = new URLSearchParams(location.search);
+    const from = params.get("note");
     if (from) {
+      if (params.get("b")) {
+        $("today-title").textContent = params.get("t") || "Petal Ping";
+        $("today-body").textContent = params.get("b");
+      }
       $("today-card").classList.add("highlight");
       $("today-card").scrollIntoView({ block: "center" });
       history.replaceState(null, "", location.pathname);
     }
+    setupFeedback(from || data.today.rule);
   }
 
   // Ingest is manual (D10), so staleness has to be visible rather than silent.
