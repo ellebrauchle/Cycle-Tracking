@@ -409,7 +409,7 @@ has real volume.
 | 2026-10-07 | **Q1 resolved:** symptoms do export from Clue. D6 unblocked; symptom record schemas documented. |
 | 2026-10-07 | **D5 hypothesis falsified:** the third cycle did not reproduce the intensity pattern seen in the first two. Heavy-day notification deferred. |
 | 2026-10-07 | **Q2 + Q3 resolved** by D9: PWA + Web Push on Vercel free tier. Pushover, ntfy and native APNs evaluated and rejected; ntfy retained as fallback. |
-| 2026-10-07 | **Push spike succeeded on first attempt.** PWA deployed to `petal-ping.vercel.app`; test notification delivered to iPhone. D9's ntfy fallback no longer needed. |
+| 2026-10-07 | **Push spike succeeded on first attempt.** PWA deployed and test notification delivered to iPhone. D9's ntfy fallback no longer needed. |
 | 2026-10-07 | **Q7 opened:** push subscriptions and cycle data both need server-side storage before the daily cron can send anything. |
 | 2026-10-14 | **Q7 resolved:** private Vercel Blob store built — subscription, prediction, sent-log, feedback. Pipeline verified end to end: ingest uploaded, cron dry-run selected a rule. |
 | 2026-10-14 | Push subscription re-created from the phone and persisted (the spike had been stateless, so nothing could send). |

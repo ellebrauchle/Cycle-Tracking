@@ -1,7 +1,7 @@
 # Next steps — picked up 2026-10-15
 
 Working as of 2026-10-14: ingest → prediction → private store → daily cron → rules → Web Push →
-iPhone, with the companion view at petal-ping.vercel.app behind a password. Five commits, repo
+iPhone, with the companion view behind a password. Five commits, repo
 clean, nothing broken. Everything below is new work, not repair.
 
 ---
