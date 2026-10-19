@@ -5,10 +5,16 @@
 // signal, since tuning which notifications are useful needs history, the same
 // way trend detection does.
 
+import { requireSession } from "../lib/auth.js";
 import { readJSON, writeJSON, PATHS } from "../lib/store.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
+
+  // Session required. This log is meant to answer "which notifications are
+  // worth sending" (Q5); tuning rules against rows anyone could have written
+  // would be worse than having no data at all.
+  if (!requireSession(req, res)) return;
 
   const { action, tag, at } = req.body || {};
   if (action !== "useful" && action !== "not-useful") {

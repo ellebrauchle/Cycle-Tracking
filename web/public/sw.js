@@ -52,11 +52,18 @@ self.addEventListener("notificationclick", (event) => {
     return;
   }
 
-  const url = (event.notification.data && event.notification.data.url) || "/";
+  // Tapping the notification body opens the app with the rule tag attached, so
+  // the view can ask for feedback on THIS notification. iOS does not render
+  // notification action buttons, so this is the path that actually gets used.
+  const base = (event.notification.data && event.notification.data.url) || "/";
+  const tag = event.notification.tag || "";
+  const url = tag ? `${base}?note=${encodeURIComponent(tag)}` : base;
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       for (const client of list) {
-        if (client.url.includes(url) && "focus" in client) return client.focus();
+        if ("focus" in client && "navigate" in client) {
+          return client.focus().then((c) => (tag ? c.navigate(url) : c));
+        }
       }
       return self.clients.openWindow(url);
     })

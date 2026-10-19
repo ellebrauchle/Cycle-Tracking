@@ -89,6 +89,15 @@
   }
   .err { color: var(--bad); font-size: 14px; margin: 10px 0 0; }
 
+  .fb { display: flex; gap: 8px; margin-top: 14px; }
+  .fb button {
+    flex: 1; padding: 11px; font-size: 15px; font-weight: 500;
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+  }
+  .fb button:active { background: var(--rose-soft); }
+  .fb-done { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
+  .highlight { outline: 2px solid var(--rose); outline-offset: 2px; }
+
   details { margin-top: 18px; }
   summary { color: var(--muted); font-size: 13px; cursor: pointer; }
   #log {
@@ -142,6 +151,11 @@
     <p class="label">Today's note</p>
     <p id="today-title" style="font-weight:600;margin:0 0 4px"></p>
     <p id="today-body" style="margin:0;font-size:15px"></p>
+    <div class="fb" id="fb">
+      <button type="button" data-action="useful">👍 Useful</button>
+      <button type="button" data-action="not-useful">👎 Not useful</button>
+    </div>
+    <p class="fb-done" id="fb-done" hidden></p>
   </div>
 
   <div class="card">
@@ -269,6 +283,15 @@ function render(data) {
     $("today-card").hidden = false;
     $("today-title").textContent = data.today.title;
     $("today-body").textContent = data.today.body;
+    setupFeedback(data.today.rule);
+
+    // Arrived by tapping a notification: point at the note it was about.
+    const from = new URLSearchParams(location.search).get("note");
+    if (from) {
+      $("today-card").classList.add("highlight");
+      $("today-card").scrollIntoView({ block: "center" });
+      history.replaceState(null, "", location.pathname);
+    }
   }
 
   // Ingest is manual (D10), so staleness has to be visible rather than silent.
@@ -280,6 +303,80 @@ function render(data) {
   }
 
   initPush();
+}
+
+// --- feedback (PRD Q6) ------------------------------------------------------
+//
+// iOS does not render notification action buttons, so the thumbs live here and
+// a notification tap deep-links in with ?note=<tag>. Rated tags are remembered
+// locally so the buttons do not re-ask; the server keeps the real log.
+
+const RATED_KEY = "pp-rated";
+
+function ratedTags() {
+  try { return JSON.parse(localStorage.getItem(RATED_KEY) || "[]"); }
+  catch { return []; }
+}
+
+function markRated(tag, action) {
+  try {
+    const all = ratedTags();
+    all.push(tag);
+    localStorage.setItem(RATED_KEY, JSON.stringify(all.slice(-50)));
+  } catch { /* private mode -- the server still has it */ }
+  showRated(action);
+}
+
+function showRated(action) {
+  $("fb").hidden = true;
+  $("fb-done").hidden = false;
+  $("fb-done").textContent =
+    action === "useful" ? "Logged — thanks. 👍" : "Logged. Fewer like this. 👎";
+}
+
+function setupFeedback(tag) {
+  if (!tag) { $("fb").hidden = true; return; }
+
+  // The tag a test push sends is prefixed; rate the underlying rule.
+  const ruleTag = tag.replace(/^test-/, "");
+  if (ratedTags().includes(ruleTag)) { showRated("useful"); $("fb-done").textContent = "Already rated today."; return; }
+
+  $("fb").hidden = false;
+  for (const btn of $("fb").querySelectorAll("button")) {
+    btn.onclick = async () => {
+      const action = btn.dataset.action;
+      for (const b of $("fb").querySelectorAll("button")) b.disabled = true;
+      // The endpoint needs a valid session. If the cookie has expired the tap
+      // must say so -- a thumb that silently vanishes is worse than an error,
+      // because the log would look sparse rather than broken.
+      try {
+        const res = await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, tag: ruleTag, at: new Date().toISOString() }),
+        });
+        if (res.ok) {
+          log("feedback recorded: " + action + " / " + ruleTag, "ok");
+          markRated(ruleTag, action);
+        } else if (res.status === 401) {
+          $("fb-done").hidden = false;
+          $("fb-done").textContent = "Not recorded — signed out. Sign in and try again.";
+          log("feedback rejected: not signed in", "bad");
+          for (const b of $("fb").querySelectorAll("button")) b.disabled = false;
+        } else {
+          $("fb-done").hidden = false;
+          $("fb-done").textContent = "Not recorded (error " + res.status + ").";
+          log("feedback failed: " + res.status, "bad");
+          for (const b of $("fb").querySelectorAll("button")) b.disabled = false;
+        }
+      } catch (err) {
+        $("fb-done").hidden = false;
+        $("fb-done").textContent = "Not recorded — no connection.";
+        log("feedback failed: " + err.message, "bad");
+        for (const b of $("fb").querySelectorAll("button")) b.disabled = false;
+      }
+    };
+  }
 }
 
 // --- push ------------------------------------------------------------------
