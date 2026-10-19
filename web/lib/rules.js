@@ -16,33 +16,34 @@
 const TIPS = [
   {
     phase: "luteal",
-    body: "Magnesium-rich foods (leafy greens, nuts, dark chocolate) are commonly "
-        + "suggested for premenstrual symptoms. — Office on Women's Health, PMS",
+    body: "Magnesium-rich foods — leafy greens, nuts, dark chocolate — are commonly "
+        + "suggested for premenstrual symptoms. Dark chocolate counts; make of that "
+        + "what you will. — Office on Women's Health, PMS",
   },
   {
     phase: "luteal",
-    body: "Regular aerobic exercise is associated with reduced PMS symptom "
-        + "severity. — ACOG, Premenstrual Syndrome",
+    body: "Regular aerobic exercise is associated with milder PMS symptoms. A walk "
+        + "counts — the research is about consistency, not intensity. — ACOG, PMS",
   },
   {
     phase: "menstrual",
-    body: "Heat applied to the lower abdomen is as effective as some pain relievers "
-        + "for menstrual cramps in several trials. — Cochrane Review",
+    body: "Heat on the lower abdomen matched some pain relievers for cramps in several "
+        + "trials. Reach for the heating pad first. — Cochrane Review",
   },
   {
     phase: "menstrual",
-    body: "Iron needs rise during menstruation. Pairing iron-rich foods with "
-        + "vitamin C improves absorption. — NIH Office of Dietary Supplements",
+    body: "Iron needs rise during menstruation, and vitamin C improves absorption. "
+        + "Pair the greens with something citrus. — NIH Office of Dietary Supplements",
   },
   {
     phase: "follicular",
-    body: "Energy and mood often rise in the week after a period as estrogen "
-        + "climbs — a good window for demanding work. — ACOG",
+    body: "Energy and mood often climb in the week after a period as estrogen rises. "
+        + "Good week to front-load the hard things — use it. — ACOG",
   },
   {
     phase: "any",
-    body: "Consistent sleep timing supports more stable cycles. Irregular sleep is "
-        + "linked to greater cycle variability. — Sleep Foundation",
+    body: "Consistent sleep timing is linked to steadier cycles; irregular sleep to more "
+        + "variability. Same bedtime beats more hours. — Sleep Foundation",
   },
 ];
 
@@ -62,8 +63,11 @@ export const RULES = [
     match: (c) => c.daysUntilWindow === 2,
     build: (c) => ({
       title: "Period likely soon",
-      body: `Your window opens in 2 days (${c.fmt(c.windowStart)}–${c.fmt(c.windowEnd)}).`
-          + (c.confidence === "low" ? " Still early data, so treat this as rough." : ""),
+      body: `Your window opens in 2 days (${c.fmt(c.windowStart)}–${c.fmt(c.windowEnd)}). `
+          + `Nothing to do yet — just so it doesn't sneak up on you.`
+          + (c.confidence === "low"
+              ? ` Only ${c.completeCycles || 2} cycles on record, so treat the dates as rough.`
+              : ""),
     }),
   },
   {
@@ -72,7 +76,8 @@ export const RULES = [
     match: (c) => c.daysUntilWindow === 0,
     build: (c) => ({
       title: "Period window starts today",
-      body: `Expected between today and ${c.fmt(c.windowEnd)}.`,
+      body: `Expected between today and ${c.fmt(c.windowEnd)}. `
+          + `Worth having what you need within reach.`,
     }),
   },
   {
@@ -81,8 +86,9 @@ export const RULES = [
     match: (c) => c.daysUntilWindow <= -3,
     build: (c) => ({
       title: "Period later than expected",
-      body: `${Math.abs(c.daysUntilWindow)} days past your predicted window. `
-          + `Cycle variation is normal — worth logging either way.`,
+      body: `You're ${Math.abs(c.daysUntilWindow)} days past the predicted window. `
+          + `Cycle variation is normal, especially on only a few cycles of data — `
+          + `worth logging either way.`,
     }),
   },
   {
@@ -94,7 +100,7 @@ export const RULES = [
       const tip = pickTip("luteal", c.cycleDay);
       return {
         title: "Entering your luteal phase",
-        body: tip ? tip.body : "This is when premenstrual symptoms typically appear.",
+        body: tip ? tip.body : "The week premenstrual symptoms typically show up — worth knowing.",
       };
     },
   },
