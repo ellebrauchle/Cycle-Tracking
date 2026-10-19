@@ -354,6 +354,38 @@ rotated. Credentials should pass between files, never through a human or a scree
 
 ---
 
+## D13 — Feedback notes drive rule edits by hand, not by model
+
+**Date:** 2026-10-19 · **Status:** Decided
+
+Thumbs now carry an optional free-text note. Notes accumulate in the feedback log; a human reads
+them and edits `rules.js`. Nothing in the running system reads the log, and no model writes
+notification text.
+
+**Why a note at all:** a thumbs-down says a notification was wrong but never how. "Too long",
+"too chipper", "woke me at 7am" and "I don't care about sleep tips" are four different fixes that
+are indistinguishable as a bare thumb. The note is the part that makes the log actionable.
+
+**Why not have a model do it:** generated notification text would reintroduce exactly the risk
+the curated tip set exists to avoid — invented health claims on a lock screen, with citations
+that may not say what they appear to say. Rule edits made by hand land in git, where they can be
+read, reviewed and reverted. An LLM constrained to rephrasing already-approved facts is a
+plausible future sprint; generating the facts is not.
+
+**The loop:**
+1. A notification arrives; tapping it opens the app showing that exact text.
+2. Thumb is recorded immediately. The note is a separate, optional second step, so an
+   abandoned half-sentence never costs the vote.
+3. `GET /api/feedback` (session required) returns the log.
+4. Rules, tips or cooldowns are edited in `rules.js` and committed, citing the notes that
+   prompted the change.
+
+**Deliberately not built:** automatic suppression of downvoted rules. It is tempting and easy,
+but with one user and a handful of votes it would overfit to a bad week. Revisit once the log
+has real volume.
+
+---
+
 ## Open questions
 
 | # | Question | Why it matters | Needed by |
@@ -391,3 +423,5 @@ rotated. Credentials should pass between files, never through a human or a scree
 | 2026-10-19 | Repo pushed to `ellebrauchle/Cycle-Tracking` (private for now); PRDs reviewed and published. |
 | 2026-10-19 | **Q6 resolved.** Thumbs feedback shipped in the companion view; verified end to end — notification tapped, feedback logged. |
 | 2026-10-19 | Deploys blocked for ~90 min: Vercel rejects a deployment whose git commit author is not a team member, which began the moment the GitHub remote was added. Fixed by adding the MIT address to the Vercel account. Deployment Protection and Attack Challenge Mode were also disabled while diagnosing; only the former was actually blocking. |
+| 2026-10-19 | Tone sampler added (`/api/sample`) — five voices of the same notification, rated individually. Thumbs now rate the notification that was tapped, not whatever rule fires today. |
+| 2026-10-19 | **D13:** feedback notes added. Notes drive hand-edits to `rules.js`; no model in the loop. |

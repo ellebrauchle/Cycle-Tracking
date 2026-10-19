@@ -96,6 +96,15 @@
   }
   .fb button:active { background: var(--rose-soft); }
   .fb-done { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
+  .fb-note { margin-top: 12px; }
+  .fb-note textarea {
+    width: 100%; min-height: 64px; padding: 10px; font: inherit; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--ink); resize: vertical;
+  }
+  .fb-note .row { display: flex; gap: 8px; margin-top: 8px; }
+  .fb-note .row button { flex: 1; padding: 10px; font-size: 15px; }
+  .fb-note .row button.skip { background: transparent; color: var(--muted); border: 1px solid var(--line); }
   .highlight { outline: 2px solid var(--rose); outline-offset: 2px; }
 
   details { margin-top: 18px; }
@@ -156,6 +165,14 @@
       <button type="button" data-action="not-useful">👎 Not useful</button>
     </div>
     <p class="fb-done" id="fb-done" hidden></p>
+    <div class="fb-note" id="fb-note" hidden>
+      <textarea id="fb-text" rows="3"
+        placeholder="Optional — what would make this better? (too long, wrong time, wrong tone…)"></textarea>
+      <div class="row">
+        <button type="button" id="fb-send">Add note</button>
+        <button type="button" class="skip" id="fb-skip">Skip</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -330,14 +347,38 @@ function markRated(tag, action) {
     all.push(tag);
     localStorage.setItem(RATED_KEY, JSON.stringify(all.slice(-50)));
   } catch { /* private mode -- the server still has it */ }
-  showRated(action);
+  showRated(action, tag);
 }
 
-function showRated(action) {
+function showRated(action, tag) {
   $("fb").hidden = true;
   $("fb-done").hidden = false;
   $("fb-done").textContent =
     action === "useful" ? "Logged — thanks. 👍" : "Logged. Fewer like this. 👎";
+
+  // The vote is already recorded. The note is a second, optional step, so a
+  // half-written sentence can never cost the vote itself.
+  if (!tag) return;
+  $("fb-note").hidden = false;
+  $("fb-skip").onclick = () => { $("fb-note").hidden = true; };
+  $("fb-send").onclick = async () => {
+    const note = $("fb-text").value.trim();
+    if (!note) { $("fb-note").hidden = true; return; }
+    $("fb-send").disabled = true;
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag, note, attachToLast: true }),
+      });
+      $("fb-done").textContent = res.ok ? "Logged, with your note. Thanks." : "Note not saved.";
+      log(res.ok ? "note attached to " + tag : "note failed: " + res.status, res.ok ? "ok" : "bad");
+    } catch (err) {
+      $("fb-done").textContent = "Note not saved — no connection.";
+      log("note failed: " + err.message, "bad");
+    }
+    $("fb-note").hidden = true;
+  };
 }
 
 function setupFeedback(tag) {
@@ -345,7 +386,12 @@ function setupFeedback(tag) {
 
   // The tag a test push sends is prefixed; rate the underlying rule.
   const ruleTag = tag.replace(/^test-/, "");
-  if (ratedTags().includes(ruleTag)) { showRated("useful"); $("fb-done").textContent = "Already rated today."; return; }
+  if (ratedTags().includes(ruleTag)) {
+    $("fb").hidden = true;
+    $("fb-done").hidden = false;
+    $("fb-done").textContent = "Already rated.";
+    return;
+  }
 
   $("fb").hidden = false;
   for (const btn of $("fb").querySelectorAll("button")) {
