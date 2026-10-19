@@ -6,24 +6,15 @@ clean, nothing broken. Everything below is new work, not repair.
 
 ---
 
-## 1. Decide on the PDFs (5 min, blocks going public)
+## 1. ~~Decide on the PDFs~~ — DONE 2026-10-19
 
-Both PRDs and `old - apple health/` are git-ignored because I couldn't read the PDFs to check
-them for period dates or screenshots.
+Both PRDs reviewed and confirmed clean, unignored and committed. `old - apple health/` is
+still ignored (superseded experiment, not reviewed) — delete or publish it whenever.
 
-- [ ] Open `ElleBrauchle_PRD_PetalPing.pdf` and `PetalPing_Sprint 1_PRD_2.pdf`, look for any
-      real dates, flow values or symptom logs
-- [ ] If clean: remove `*.pdf` from `.gitignore` and commit them — they're good portfolio material
-- [ ] If not: leave ignored, or redact and export a public version
-- [ ] `old - apple health/` is two small HTML files from the abandoned Shortcuts approach;
-      delete or publish, your call
+## 2. ~~Push the repo to GitHub~~ — DONE 2026-10-19
 
-## 2. Push the repo to GitHub (15 min)
-
-- [ ] Create the repo on GitHub (public)
-- [ ] `git remote add origin <url>` then `git push -u origin main`
-- [ ] Check the rendered README on GitHub — the ASCII diagram should survive
-- [ ] Confirm `data/` and `.env` are absent from the pushed tree
+Pushed to `ellebrauchle/Cycle-Tracking`, **still private**. 29 files, no `data/`, no `.env`,
+no exports. Going public is now the last step on this list.
 
 Note: the pre-commit hook is local. It will not follow a clone unless you run
 `git config core.hooksPath .githooks` there.
@@ -56,6 +47,20 @@ New material since the last version — D10, D11, D12 are all written up in the 
       until roughly 4. Say "re-ingest" here and I'll run it.
 - [ ] Log symptoms in Clue if you want the deferred symptom features (D6) to become possible —
       they're blocked on data volume, not code.
+
+## 6. Last step — make the repo public
+
+Do this once you're happy with how it reads. It is the one irreversible action here: assume
+anything public has been archived by someone, even if you flip it back.
+
+- [ ] Skim the repo on GitHub — README rendering, and the decisions doc, which is what a
+      recruiter will actually read
+- [ ] Decide on the name and description. It is currently `Cycle-Tracking`, described as
+      "pulls personal health data…". `petal-ping` with an engineering-forward description may
+      land better on a resume. Renaming is free now, awkward once people have the link
+- [ ] Flip to public (`gh repo edit ellebrauchle/Cycle-Tracking --visibility public`)
+- [ ] Decide separately whether the live app URL goes in the repo description — the app is
+      password-protected, but the URL reveals that it exists
 
 ---
 
