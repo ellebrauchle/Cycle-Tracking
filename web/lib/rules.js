@@ -14,6 +14,7 @@
 // text. General wellness framing only -- this is not medical advice, and the
 // citation travels with every tip so it can be checked.
 const TIPS = [
+  // --- luteal ------------------------------------------------------------
   {
     phase: "luteal",
     body: "Magnesium-rich foods — leafy greens, nuts, dark chocolate — are commonly "
@@ -26,6 +27,31 @@ const TIPS = [
         + "counts — the research is about consistency, not intensity. — ACOG, PMS",
   },
   {
+    phase: "luteal",
+    body: "After ovulation the empty follicle becomes the corpus luteum and starts "
+        + "producing progesterone. Bloating, tender breasts, mild cramping and shifting "
+        + "energy are common in this stretch. — Clue",
+  },
+  {
+    phase: "luteal",
+    body: "Craving fat, sugar, salt or carbs before your period is a documented pattern, "
+        + "not a willpower problem — hormone shifts in the luteal phase drive it. Eat "
+        + "accordingly. — Clue",
+  },
+  {
+    phase: "luteal",
+    body: "Rising progesterone can affect mood — irritability, sadness or anxiety — "
+        + "especially if you're sensitive to hormonal change. Worth knowing it has a "
+        + "cause before you blame your week. — Clue",
+  },
+  {
+    phase: "luteal",
+    body: "The luteal phase usually runs about 14 days, but anywhere from 9 to 16 is "
+        + "normal. Yours arriving early or late is not a malfunction. — Clue",
+  },
+
+  // --- menstrual ---------------------------------------------------------
+  {
     phase: "menstrual",
     body: "Heat on the lower abdomen matched some pain relievers for cramps in several "
         + "trials. Reach for the heating pad first. — Cochrane Review",
@@ -36,21 +62,71 @@ const TIPS = [
         + "Pair the greens with something citrus. — NIH Office of Dietary Supplements",
   },
   {
+    phase: "menstrual",
+    body: "Pain is the single most-tracked symptom during periods in Clue's data, "
+        + "followed by mood. If yours follows a pattern, logging it is how the pattern "
+        + "becomes visible. — Clue",
+  },
+  {
+    phase: "menstrual",
+    body: "Periods average five to six days, and up to eight is still typical. Estrogen "
+        + "and progesterone are at their lowest right now, which is part of why energy "
+        + "often is too. — Clue",
+  },
+
+  // --- follicular --------------------------------------------------------
+  {
     phase: "follicular",
     body: "Energy and mood often climb in the week after a period as estrogen rises. "
         + "Good week to front-load the hard things — use it. — ACOG",
   },
   {
+    phase: "follicular",
+    body: "As estrogen rises, people often report feeling more motivated, curious or "
+        + "open to new ideas. If something has been sitting on your list, this is the "
+        + "week to start it. — Clue",
+  },
+  {
+    phase: "follicular",
+    body: "Your uterine lining is rebuilding and one follicle is becoming dominant — by "
+        + "the end it's roughly the size of the button on a pair of jeans. Bodies are "
+        + "strange and good. — Clue",
+  },
+
+  // --- any phase ---------------------------------------------------------
+  {
     phase: "any",
     body: "Consistent sleep timing is linked to steadier cycles; irregular sleep to more "
         + "variability. Same bedtime beats more hours. — Sleep Foundation",
   },
+  {
+    phase: "any",
+    body: "A full cycle anywhere from 24 to 38 days is normal, and length varies from one "
+        + "cycle to the next. Variation is the rule, not a sign something is off. — Clue",
+  },
+  {
+    phase: "safety-net",
+    body: "Worth raising with a doctor: cycles consistently under 24 or over 38 days, "
+        + "periods skipped three months running, bleeding over eight days or soaking a "
+        + "pad hourly, or pain that disrupts your day. — Clue",
+  },
 ];
 
 function pickTip(phase, seed) {
-  const pool = TIPS.filter((t) => t.phase === phase || t.phase === "any");
+  // Prefer something written for THIS phase. "any" tips are a fallback, not an
+  // equal-weight sibling -- a luteal heads-up that opens with a sleep fact is a
+  // wasted notification. "safety-net" never surfaces here; it has its own rule.
+  const specific = TIPS.filter((t) => t.phase === phase);
+  const pool = specific.length ? specific : TIPS.filter((t) => t.phase === "any");
   if (!pool.length) return null;
   return pool[seed % pool.length];
+}
+
+// The "when to see a doctor" content. Real and worth knowing, but it should
+// arrive occasionally and predictably rather than landing at random on an
+// ordinary Tuesday, which reads as alarming.
+function safetyNetTip() {
+  return TIPS.find((t) => t.phase === "safety-net") || null;
 }
 
 // --- Rules ------------------------------------------------------------------
@@ -111,6 +187,19 @@ export const RULES = [
     build: (c) => {
       const tip = pickTip("menstrual", c.cycleDay);
       return { title: "Petal Ping", body: tip ? tip.body : "Day " + c.cycleDay + " of your period." };
+    },
+  },
+  {
+    id: "safety-net",
+    // Mid-cycle, when nothing else is happening, about four times a year.
+    cooldownDays: 90,
+    match: (c) => c.cycleDay === 15,
+    build: () => {
+      const tip = safetyNetTip();
+      return {
+        title: "A quick reference",
+        body: tip ? tip.body : "Severe or disruptive symptoms are worth raising with a doctor.",
+      };
     },
   },
   {

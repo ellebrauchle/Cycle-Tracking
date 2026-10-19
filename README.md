@@ -89,6 +89,19 @@ A few that are representative:
   been granting a general-purpose interpreter access to everything on the machine; the ingest
   step was made manual instead.
 - **D11 — privacy enforced by tooling, not discipline.** See below.
+- **D13 — feedback edits the rules, no model in the loop.** Thumbs carry an optional note;
+  a human reads the log and edits `rules.js`, so every change to what the app says lands in
+  git where it can be reviewed. Generated health advice was the thing to avoid.
+
+## Where the tip content comes from
+
+The 16 tips in `rules.js` are a curated set, each carrying its source: ACOG, the NIH Office of
+Dietary Supplements, the Office on Women's Health, a Cochrane review, the Sleep Foundation, and
+Clue's own published articles at helloclue.com. Clue's material is paraphrased and attributed,
+never reproduced — it is copyrighted, and a lock screen needs one sentence rather than a page.
+
+Nothing here is generated. That is the point: invented health claims with plausible-looking
+citations are the specific failure this design rules out.
 
 ## Privacy design
 
