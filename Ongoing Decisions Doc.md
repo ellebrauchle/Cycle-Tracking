@@ -364,7 +364,7 @@ rotated. Credentials should pass between files, never through a human or a scree
 | ~~Q7~~ | ~~Where do push subscriptions and cycle data get stored server-side?~~ | **Resolved 2026-10-14: private Vercel Blob store** (`lib/store.js`) holding the push subscription, the uploaded prediction, a sent-log and feedback. Only the prediction conclusion is uploaded; the full history stays on the laptop (D8). Verified end to end 2026-10-14. | — |
 | Q4 | Research-backed tips: curated static library, or RAG over uploaded articles? | A curated set avoids hallucinated health claims for ~40 items of content; RAG is more machinery and more risk | Before the tips feature |
 | Q5 | Ideal notification frequency? | Over-notifying gets the app muted, which kills the project | After first real notifications ship |
-| Q6 | How to incorporate feedback (thumbs up/down per notification)? | Carried over from PRD; unclear if upfront or post-launch | Not blocking |
+| ~~Q6~~ | ~~How to incorporate feedback (thumbs up/down per notification)?~~ | **Resolved 2026-10-19: in the app, not on the notification.** iOS does not render Web Push action buttons, so the thumbs declared in `sw.js` were unreachable. Tapping a notification now deep-links to the app with `?note=<rule>`, which highlights that note and offers the thumbs there. `/api/feedback` requires a session, and failures surface in the UI. | — |
 
 ---
 
@@ -387,3 +387,7 @@ rotated. Credentials should pass between files, never through a human or a scree
 | 2026-10-14 | **D12:** password gate (scrypt + signed session cookie + lockout) and the companion view shipped — countdown, window, stated confidence, cycle day, phase, today's note, staleness banner, collapsed diagnostics. |
 | 2026-10-14 | `/api/test-push` added: sends today's real rule output on demand. Verified end to end — notification delivered to the phone. |
 | 2026-10-14 | Session secret and password hash rotated after leaking into terminal scrollback and a chat transcript. Vercel env vars replaced; setup tool rewritten to write `.env` directly. |
+| 2026-10-19 | New Clue export ingested: symptoms 4 → 31 across 10 types, all reusing the known `list of {option}` shape. D6 updated with an un-defer threshold (two complete cycles of symptom logging). |
+| 2026-10-19 | Repo pushed to `ellebrauchle/Cycle-Tracking` (private for now); PRDs reviewed and published. |
+| 2026-10-19 | **Q6 resolved.** Thumbs feedback shipped in the companion view; verified end to end — notification tapped, feedback logged. |
+| 2026-10-19 | Deploys blocked for ~90 min: Vercel rejects a deployment whose git commit author is not a team member, which began the moment the GitHub remote was added. Fixed by adding the MIT address to the Vercel account. Deployment Protection and Attack Challenge Mode were also disabled while diagnosing; only the former was actually blocking. |
