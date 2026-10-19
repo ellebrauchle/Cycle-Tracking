@@ -163,6 +163,19 @@ Expect more shapes as more symptom types get logged. `ingest.py` currently store
 records verbatim rather than guessing at a unified schema — deliberately, so new shapes surface
 instead of being silently coerced.
 
+**Update 2026-10-19 — eight new types, no new shapes.** A fuller export brought `energy`, `pain`,
+`craving`, `digestion`, `mind`, `exercise`, `skin` and `leisure`. All eight use the same
+`list of {option}` shape already seen for `feelings`; only `sleep_duration` differs. The
+branch-on-type parser needs no change, and storing records verbatim is what made this a
+five-minute check instead of a migration.
+
+**Threshold for un-deferring D6:** symptom records now exist, but they cover 11 distinct days
+inside a single cycle. Any rule worth shipping ("cramps tend to start two days before",
+"mood dips in late luteal") needs the same pattern to appear across **at least two complete
+cycles** of symptom logging — realistically after the November period, so December at the
+earliest. Volume is not the blocker; consistency across cycles is. Treat a pattern seen in one
+cycle the way D5 was treated: Provisional, tested against the next cycle, not built on.
+
 ---
 
 ## D7 — Notification runtime must not depend on Claude or the laptop
